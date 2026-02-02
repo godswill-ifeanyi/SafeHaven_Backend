@@ -14,6 +14,12 @@ return [
     |
     */
 
+    'safehaven' => [
+        'base_url' => env('SAFEHAVEN_BASE_URL', 'https://api.sandbox.safehavenmfb.com'),
+        'client_id' => env('SAFEHAVEN_CLIENT_ID'),
+        'access_token' => env('SAFEHAVEN_ACCESS_TOKEN'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
