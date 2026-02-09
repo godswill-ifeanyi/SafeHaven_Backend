@@ -11,14 +11,9 @@ class UserController extends Controller
     public function create(Request $request, SafeHavenService $safeHaven)
     {
         $validated = $request->validate([
-            'first_name' => 'required|string',
-            'last_name'  => 'required|string',
-            'email'      => 'required|email',
-            'phone'      => 'required|string',
-            'dob'        => 'required|date',
-            'address'    => 'required|string',
-            'city'       => 'required|string',
-            'state'      => 'required|string',
+            'email' => 'required|email',
+            'phone' => 'required|digits:11',
+            'nin' => 'required|digits:11',
         ]);
 
         $response = $safeHaven->createIndividualSubAccount($validated);
@@ -28,4 +23,5 @@ class UserController extends Controller
             $response['success'] ? 201 : 422
         );
     }
+
 }

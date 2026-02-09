@@ -10,15 +10,15 @@ class SafeHavenOAuthService
     public function generateClientAssertion(): string
     {
         $privateKey = file_get_contents(
-            config('services.safehaven.private_key_path')
+            storage_path(config('services.safehaven.private_key_path'))
         );
 
         $now = time();
 
         $payload = [
-            'iss' => config('services.safehaven.client_id'),
+            'iss' => config('app.url'),
             'sub' => config('services.safehaven.client_id'),
-            'aud' => config('services.safehaven.base_url') . '/oauth/token',
+            'aud' => config('services.safehaven.base_url'),
             'jti' => (string) Str::uuid(),
             'iat' => $now,
             'exp' => $now + 300, // 5 minutes

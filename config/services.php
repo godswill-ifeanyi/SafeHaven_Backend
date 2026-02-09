@@ -15,9 +15,12 @@ return [
     */
 
     'safehaven' => [
+        'primary_account_number' => env('SAFEHAVEN_PRIMARY_ACCOUNT_NUMBER'),
         'base_url' => env('SAFEHAVEN_BASE_URL', 'https://api.sandbox.safehavenmfb.com'),
         'client_id' => env('SAFEHAVEN_CLIENT_ID'),
         'access_token' => env('SAFEHAVEN_ACCESS_TOKEN'),
+        'private_key_path' => env('SAFEHAVEN_PRIVATE_KEY_PATH'),
+        'token_ttl' => env('SAFEHAVEN_TOKEN_TTL', 3600),
     ],
 
     'postmark' => [
