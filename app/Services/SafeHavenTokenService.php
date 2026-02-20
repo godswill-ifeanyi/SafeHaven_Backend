@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\SafeHavenOAuthService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class SafeHavenTokenService
 {
@@ -18,13 +19,9 @@ class SafeHavenTokenService
 
     public function getAccessToken(): string
     {
-        return Cache::remember(
-            'safehaven_access_token',
-            config('services.safehaven.token_ttl', 3600) - 60,
-            function () {
-                return $this->requestNewToken();
-            }
-        );
+        return Cache::remember('safehaven_access_token', 300, function () {
+            return $this->requestNewToken();
+        });
     }
 
     public function refreshToken(): string

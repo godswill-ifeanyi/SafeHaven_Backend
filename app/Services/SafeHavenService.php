@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\SafeHavenTokenService;
 use Illuminate\Support\Facades\Http;
 
 class SafeHavenService
@@ -19,52 +20,40 @@ class SafeHavenService
         $this->tokenService = $tokenService;
     }
 
-    protected function client()
-    {
-        return Http::withToken($this->tokenService->getAccessToken())
-            ->acceptJson();
-    }
-
-    protected function refreshClient()
-    {
-        $this->tokenService->refreshToken();
-        return $this->client();
-    }
 
     /**
-     * Initiate BVN verification
+     * Initiate NIN verification
      *
-     * @param string $bvn
+     * @param string $nin
      * @return string identityId
      * @throws \Exception
      */
-    public function initiateBVNVerification(string $nin): string
+    public function initiateNINVerification(string $nin)
     {
-        $response = $this->client()->withHeaders([
-            'clientId' => $this->clientId,
-        ])->post(
-            "{$this->baseUrl}/identity/v2",
-            [
+        $token = $this->tokenService->getAccessToken();
+
+        $response = Http::withToken($token)
+            ->withHeaders([
+                'ClientID' => $this->clientId,
+            ])
+            ->acceptJson()
+            ->contentType('application/json')
+            ->post("{$this->baseUrl}/identity/v2", [
                 "type" => "NIN",
                 "number" => $nin,
                 "debitAccountNumber" => $this->primaryAccountNumber,
-            ]
-        );
+                "async" => false,
+            ]);
 
-        if ($response->failed()) {
-            throw new \Exception(
-                'BVN initiation failed: ' .
-                ($response->json('message') ?? 'Unknown error')
-            );
+        if (!$response->ok()) {
+            return response()->json([
+                'error' => 'Request failed',
+                'status' => $response->status(),
+                'safehaven_response' => $response->json(),
+            ], 400);
         }
 
-        $identityId = $response->json('data._id');
-
-        if (!$identityId) {
-            throw new \Exception('Safe Haven did not return identityId');
-        }
-
-        return $identityId;
+        return $response->json();
     }
 
 /**
@@ -100,32 +89,32 @@ class SafeHavenService
     public function createIndividualSubAccount(array $data): array
     {
         // Verify NIN
-        $identityId = $this->initiateBVNVerification($data['nin']);
+        $identityId = $this->initiateNINVerification($data['nin']);
 
-        if (!$identityId) {
-            return [
-                'success' => false,
-                'message' => 'NIN verification failed',
-            ];
-        }
-
-        $response = $this->client()->post(
+        $response = $this->client()->withHeaders([
+            'ClientID' => $this->clientId,
+        ])->post(
             "{$this->baseUrl}/accounts/v2/subaccount",
             [
-                "emailAddress"       => $data['email'],
+                "emailAddress" => $data['email'],
                 "phoneNumber" => $data['phone'],
                 "externalReference" => uniqid('cliApp', true),
-                "identityType"   => "NIN",
-                "identityNumber"     => $data['nin'],
-                'identityId'       => $identityId,
+                "identityType" => "NIN",
+                "identityNumber" => $data['nin'],
+                'identityId' => $identityId,
+                "autoSweep" => true,
+                "autoSweepDetails" => [
+                    "schedule" => "Instant",
+                    "accountNumber" => $this->primaryAccountNumber,
+                ],
+                'otp' => $data['otp'] ?? null, // Optional, can be used for auto-validation if provided
             ]
         );
 
-        if ($response->failed()) {
+        if (!$response->ok()) {
             return [
                 'success' => false,
-                'status'  => $response->status(),
-                'errors'  => $response->json(),
+                'error' => $response->json('message') ?? 'Failed to create sub-account',
             ];
         }
 

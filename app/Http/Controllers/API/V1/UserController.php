@@ -14,13 +14,14 @@ class UserController extends Controller
             'email' => 'required|email',
             'phone' => 'required|digits:11',
             'nin' => 'required|digits:11',
+            'otp' => 'nullable|digits:6',
         ]);
 
         $response = $safeHaven->createIndividualSubAccount($validated);
 
         return response()->json(
             $response,
-            $response['success'] ? 201 : 422
+            $response['success'] ? 201 : ($response['data']['statusCode'] ?? 422)
         );
     }
 
