@@ -13,7 +13,7 @@ class SafeHavenOAuthService
             storage_path(config('services.safehaven.private_key_path'))
         );
 
-        $now = time();
+        $now = time() - 10;
 
         $payload = [
             'iss' => config('app.url'),

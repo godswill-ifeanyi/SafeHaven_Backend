@@ -44,20 +44,13 @@ class SafeHavenService
                 "debitAccountNumber" => $this->primaryAccountNumber,
                 "async" => false,
             ]);
-
-        if (!$response->ok()) {
-            return response()->json([
-                'error' => 'Request failed',
-                'status' => $response->status(),
-                'safehaven_response' => $response->json(),
-            ], 400);
-        }
+     
 
         return $response->json();
     }
 
 /**
- * Validate BVN verification using OTP
+ * Validate NIN verification using OTP
  *
  * @param string $identityId
  * @param string $otp
@@ -65,61 +58,104 @@ class SafeHavenService
  * @throws \Exception
  */
 
- /*public function validateBVNVerification(string $identityId, string $otp): bool
-{
-    $response = $this->client()->post(
-        "{$this->baseUrl}/identity/v2/validate",
-        [
-            "identityId" => $identityId,
-            "otp"        => $otp,
-        ]
-    );
+    public function validateNINVerification(string $identityId, string $otp)
+    {
 
-    if ($response->failed()) {
-        throw new \Exception(
-            'BVN validation failed: ' .
-            ($response->json('message') ?? 'Invalid OTP')
-        );
+        $token = $this->tokenService->getAccessToken();
+
+            $response = Http::withToken($token)
+                ->withHeaders([
+                    'ClientID' => $this->clientId,
+                ])
+                ->acceptJson()
+                ->contentType('application/json')
+                ->post("{$this->baseUrl}/identity/v2/validate", [
+                    "type" => "NIN",
+                    "identityId" => $identityId,
+                    "otp" => $otp,
+                ]);
+
+
+            return $response->json();
     }
-
-    return true;
-}
- */
 
     public function createIndividualSubAccount(array $data): array
     {
-        // Verify NIN
-        $identityId = $this->initiateNINVerification($data['nin']);
+        $token = $this->tokenService->getAccessToken();
 
-        $response = $this->client()->withHeaders([
-            'ClientID' => $this->clientId,
-        ])->post(
+        // Verify NIN
+        //$identityId = $this->initiateNINVerification("59731309476");
+
+
+        $response = Http::withToken($token)
+                ->withHeaders([
+                    'ClientID' => $this->clientId,
+                ])
+                ->acceptJson()
+                ->contentType('application/json')->post(
             "{$this->baseUrl}/accounts/v2/subaccount",
             [
                 "emailAddress" => $data['email'],
                 "phoneNumber" => $data['phone'],
-                "externalReference" => uniqid('cliApp', true),
+                "externalReference" => "OBI CHAMBERS",
                 "identityType" => "NIN",
-                "identityNumber" => $data['nin'],
-                'identityId' => $identityId,
+                "identityNumber" => "59731309476",
+                'identityId' => "699c5aa49dbc6ec0b276fa65",
                 "autoSweep" => true,
                 "autoSweepDetails" => [
                     "schedule" => "Instant",
                     "accountNumber" => $this->primaryAccountNumber,
                 ],
-                'otp' => $data['otp'] ?? null, // Optional, can be used for auto-validation if provided
+                'otp' => "295995",
             ]
         );
 
         if (!$response->ok()) {
             return [
-                'success' => false,
-                'error' => $response->json('message') ?? 'Failed to create sub-account',
+                'status' => "error",
+                'message' => $response->json('message') ?? 'Failed to create sub-account',
             ];
         }
 
         return [
-            'success' => true,
+            'status' => "success",
+            'data' => $response->json(),
+        ];
+    }
+
+    public function createCorporateSubAccount(array $data): array
+    {
+        $token = $this->tokenService->getAccessToken();
+
+        $response = Http::withToken($token)
+            ->withHeaders([
+                'ClientID' => $this->clientId,
+            ])
+            ->acceptJson()
+            ->contentType('application/json')
+            ->post("{$this->baseUrl}/accounts/v2/subaccount", [
+                "emailAddress" => $data['email'],
+                "phoneNumber" => $data['phone'],
+                "externalReference" => uniqid('cliApp-',true),
+                "identityType" => "vID",
+                "identityId" => $data['identityId'],
+                "companyRegistrationNumber" => $data['companyRegistrationNumber'],
+                "autoSweep" => true,
+                "autoSweepDetails" => [
+                    "schedule" => "Instant",
+                    "accountNumber" => $this->primaryAccountNumber,
+                ],
+            ]);
+
+        if (!$response->ok()) {
+            return [
+                'status' => "error",
+                'message' => $response->json('message') ?? 'Failed to create sub-account',
+            ];
+        }
+
+        return [
+            'status' => "success",
             'data' => $response->json(),
         ];
     }

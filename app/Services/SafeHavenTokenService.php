@@ -45,11 +45,11 @@ class SafeHavenTokenService
             ]
         );
 
-        if ($response->failed()) {
-            throw new \Exception(
-                'SafeHaven OAuth failed: ' . $response->body()
-            );
-        }
+        if (!$response->successful()) {
+            return response()->json([
+                "response" => $response->json(),
+            ]);
+        } 
 
         return $response->json('access_token');
     }

@@ -21,31 +21,33 @@ class NINVerificationController extends Controller
 
         $response = $safeHaven->initiateNINVerification($request->nin);
 
-        $response = json_decode($response->getContent(), true);
-
-        return $this->success($response["safehaven_response"]['data'], 'NIN verification initiated successfully', 200);
+        if (isset($response['data'])) {
+            return $this->success($response['data'], 'NIN verification initiated successfully', 200);
+        } else {
+            return $this->error($response['message'] ?? 'Failed to initiate NIN verification', $response['statusCode'] ?? 400);
+        }
 
     }
 
     /**
-     * Step 2: Validate BVN OTP
+     * Step 2: Validate NIN OTP
      */
     public function validateOtp(Request $request, SafeHavenService $safeHaven)
     {
         $request->validate([
-            'identity_id' => 'required|string',
+            'identityId' => 'required|string',
             'otp'         => 'required|digits:6',
         ]);
 
-        $safeHaven->validateBVNVerification(
-            $request->identity_id,
+        $response = $safeHaven->validateNINVerification(
+            $request->identityId,
             $request->otp
         );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'BVN verified successfully',
-            'identity_id' => $request->identity_id,
-        ]);
+        if (isset($response['data'])) {
+            return $this->success($response['data'], 'NIN verification successful', 200);
+        } else {
+            return $this->error($response['message'] ?? 'Failed to validate NIN OTP', $response['statusCode'] ?? 400);
+        }
     }
 }

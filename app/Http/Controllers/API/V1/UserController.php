@@ -8,16 +8,30 @@ use App\Http\Controllers\Controller;
 
 class UserController extends Controller
 {
-    public function create(Request $request, SafeHavenService $safeHaven)
+    public function create_individual(Request $request, SafeHavenService $safeHaven)
     {
         $validated = $request->validate([
             'email' => 'required|email',
             'phone' => 'required|digits:11',
-            'nin' => 'required|digits:11',
-            'otp' => 'nullable|digits:6',
         ]);
 
         $response = $safeHaven->createIndividualSubAccount($validated);
+
+        return response()->json(
+            $response,
+            $response['success'] ? 201 : ($response['data']['statusCode'] ?? 422)
+        );
+    }
+
+    public function create_corporate(Request $request, SafeHavenService $safeHaven) {
+        $validated = $request->validate([
+            'identityId' => 'required|string',
+            'companyRegistrationNumber' => 'required|string',
+            'email' => 'required|email',
+            'phone' => 'required|digits:11',
+        ]);
+
+        $response = $safeHaven->createCorporateSubAccount($validated);
 
         return response()->json(
             $response,
