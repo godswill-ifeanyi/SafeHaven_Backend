@@ -2,25 +2,33 @@
 
 namespace App\Http\Controllers\API\V1;
 
-use Illuminate\Http\Request;
-use App\Services\SafeHavenService;
 use App\Http\Controllers\Controller;
+use App\Services\SafeHavenService;
+use App\Traits\ApiResponseTrait;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function create_individual(Request $request, SafeHavenService $safeHaven)
+    use ApiResponseTrait;
+    
+    public function create(Request $request, SafeHavenService $safeHaven)
     {
         $validated = $request->validate([
             'email' => 'required|email',
             'phone' => 'required|digits:11',
+            'identityNumber' => 'required|digits:11',
+            'identityId' => 'required|string',
+            'otp' => 'required|digits:6',
+            'companyRegistrationNumber' => 'nullable|string',
         ]);
 
         $response = $safeHaven->createIndividualSubAccount($validated);
 
-        return response()->json(
-            $response,
-            $response['success'] ? 201 : ($response['data']['statusCode'] ?? 422)
-        );
+        if (isset($response['data'])) {
+            return $this->success($response['data'], $response['message'] ?? 'Account created successfully', 201);
+        } else {
+            return $this->error($response['message'] ?? 'Failed to create account', $response['statusCode'] ?? 400);
+        }
     }
 
     public function create_corporate(Request $request, SafeHavenService $safeHaven) {
@@ -35,7 +43,7 @@ class UserController extends Controller
 
         return response()->json(
             $response,
-            $response['success'] ? 201 : ($response['data']['statusCode'] ?? 422)
+            $response['status'] === 'success' ? 201 : ($response['data']['statusCode'] ?? 422)
         );
     }
 

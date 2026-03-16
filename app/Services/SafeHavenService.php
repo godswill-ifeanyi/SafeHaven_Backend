@@ -44,7 +44,7 @@ class SafeHavenService
                 "debitAccountNumber" => $this->primaryAccountNumber,
                 "async" => false,
             ]);
-     
+
 
         return $response->json();
     }
@@ -97,30 +97,20 @@ class SafeHavenService
             [
                 "emailAddress" => $data['email'],
                 "phoneNumber" => $data['phone'],
-                "externalReference" => "OBI CHAMBERS",
+                "externalReference" => uniqid('cliApp-',true),
                 "identityType" => "NIN",
-                "identityNumber" => "59731309476",
-                'identityId' => "699c5aa49dbc6ec0b276fa65",
+                "identityNumber" => $data['identityNumber'],
+                'identityId' => $data['identityId'],
                 "autoSweep" => true,
                 "autoSweepDetails" => [
                     "schedule" => "Instant",
                     "accountNumber" => $this->primaryAccountNumber,
                 ],
-                'otp' => "295995",
+                'otp' => $data['otp'],
             ]
         );
 
-        if (!$response->ok()) {
-            return [
-                'status' => "error",
-                'message' => $response->json('message') ?? 'Failed to create sub-account',
-            ];
-        }
-
-        return [
-            'status' => "success",
-            'data' => $response->json(),
-        ];
+        return $response->json();
     }
 
     public function createCorporateSubAccount(array $data): array
