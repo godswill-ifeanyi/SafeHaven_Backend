@@ -27,6 +27,12 @@ Route::prefix('v1')->group(function() {
     //Route::get('/account-details/users', [UserController::class, 'index']);
     //Route::get('/account-details/{account_ref}', [UserController::class, 'show']);
 
-    //Route::get('/get-banks', [TransferController::class, 'get_banks']);
+    // Transfers
+    Route::prefix('transfers')->group(function () {
+        Route::get('/banks', [TransferController::class, 'get_banks']);
+        Route::post('/name-enquiry', [TransferController::class, 'name_enquiry']);
+        Route::post('/', [TransferController::class, 'transfer']);
+
+    });
 
 });
