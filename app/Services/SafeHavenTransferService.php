@@ -71,7 +71,7 @@ class SafeHavenTransferService
             "amount" => $data['amount'],
             "debitAccountNumber" => $data['debitAccountNumber'],
             "beneficiaryAccountNumber" => $data['creditAccountNumber'],
-            "beneficiaryBankCode" => $data['creditBankCode'],
+            "beneficiaryBankCode" => $data['creditankCode'],
             "narration" => $data['narration'] ?? 'Transfer',
             "saveBeneficiary" => false,
             "nameEnquiryReference" => $data['sessionId'], // 🔑 from name enquiry
@@ -85,23 +85,12 @@ class SafeHavenTransferService
     /**
      * 4️⃣ Transfer Status
      */
-    public function transferStatus(?string $sessionId = null, ?string $reference = null)
+    public function transferStatus(string $sessionId)
     {
-        $payload = [];
 
-        if ($sessionId) {
-            $payload['sessionId'] = $sessionId;
-        }
-
-        if ($reference) {
-            $payload['paymentReference'] = $reference;
-        }
-
-        $response = $this->client()->post("{$this->baseUrl}/transfers/status", $payload);
-
-        if (!$response->ok()) {
-            throw new \Exception('Failed to fetch transfer status');
-        }
+        $response = $this->client()->post("{$this->baseUrl}/transfers/status", [
+            "sessionId" => $sessionId,
+        ]);
 
         return $response->json();
     }
@@ -112,10 +101,6 @@ class SafeHavenTransferService
     public function getTransfers(array $query = [])
     {
         $response = $this->client()->get("{$this->baseUrl}/transfers", $query);
-
-        if (!$response->ok()) {
-            throw new \Exception('Failed to fetch transfers');
-        }
 
         return $response->json();
     }

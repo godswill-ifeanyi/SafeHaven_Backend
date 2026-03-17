@@ -63,4 +63,33 @@ class TransferController extends Controller
             return $this->error($response['message'] ?? 'Failed to transfer', $response['statusCode'] ?? 400);
         } 
     }
+
+    public function transfer_status(Request $request)
+    {
+        // SInce the service makes use of either paymentReference or sessionId, check for the provided one
+        $sessionId = $request->route('session_id');
+
+        // Get transfer status from SafeHavenTransferService
+        $response = app()->make('App\Services\SafeHavenTransferService')->transferStatus($sessionId);
+
+        if (isset($response['data'])) {
+            return $this->success(["paymentStatus" => $response['data']['status']], 'Transfer status fetched successfully', 200);
+        } else {
+            return $this->error($response['message'] ?? 'Failed to fetch transfer status', $response['statusCode'] ?? 400);
+        }
+    }
+
+    public function get_transfers(Request $request)
+    {
+        $query = $request->only(['fromDate', 'toDate', 'status']);
+
+        // Get transfers from SafeHavenTransferService
+        $response = app()->make('App\Services\SafeHavenTransferService')->getTransfers($query);
+
+        if (isset($response['data'])) {
+            return $this->success($response['data'], 'Transfers fetched successfully', 200);
+        } else {
+            return $this->error($response['message'] ?? 'Failed to fetch transfers', $response['statusCode'] ?? 400);
+        }
+    }
 }

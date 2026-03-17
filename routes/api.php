@@ -32,7 +32,8 @@ Route::prefix('v1')->group(function() {
         Route::get('/banks', [TransferController::class, 'get_banks']);
         Route::post('/name-enquiry', [TransferController::class, 'name_enquiry']);
         Route::post('/', [TransferController::class, 'transfer']);
-
+        Route::get('/status/{session_id}', [TransferController::class, 'transfer_status']);
+        Route::get('/', [TransferController::class, 'get_transfers']);
     });
 
 });
