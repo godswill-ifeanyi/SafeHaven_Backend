@@ -57,11 +57,10 @@ class TransferController extends Controller
         // Perform transfer using SafeHavenTransferService
         $response = app()->make('App\Services\SafeHavenTransferService')->transfer($request->all());
 
-        /* if (isset($response['data'])) {
+        if (isset($response['data'])) {
             return $this->success($response['data'], 'Transfer successful', 201);
         } else {
             return $this->error($response['message'] ?? 'Failed to transfer', $response['statusCode'] ?? 400);
-        } */
-       return $response;
+        } 
     }
 }
