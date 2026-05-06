@@ -22,6 +22,30 @@ class UserController extends Controller
             'companyRegistrationNumber' => 'nullable|string',
         ]);
 
+        // Check if it's a corporate account creation (if companyRegistrationNumber is provided)
+        if (isset($validated['companyRegistrationNumber'])) {
+
+            try {
+                // Validate OTP first before proceeding with corporate account creation
+                $otpValid = $safeHaven->validateNINVerification($validated['identityNumber'], $validated['otp']);
+
+                if (empty($otpValid['data'])) {
+                    return $this->error($otpValid['message'] ?? 'Failed to validate NIN OTP', $otpValid['statusCode'] ?? 400);
+                }
+            
+                $response = $safeHaven->createCorporateSubAccount($validated);
+                
+                if (isset($response['data'])) {
+                    return $this->success($response['data'], $response['message'] ?? 'Account created successfully', 201);
+                } else {
+                    return $this->error($response['message'] ?? 'Failed to create account', $response['statusCode'] ?? 400);
+                }
+            } catch (\Throwable $e) {
+                return $this->error($e->getMessage() ?? 'Failed to create account', 500);
+            }
+
+        }
+
         try {
             $response = $safeHaven->createIndividualSubAccount($validated);
 

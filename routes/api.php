@@ -24,7 +24,7 @@ Route::prefix('v1')->group(function() {
 
     // Create Account
     Route::post('/create-account', [UserController::class, 'create']);
-    Route::post('/create-account/corporate', [UserController::class, 'create_corporate']);
+    //Route::post('/create-account/corporate', [UserController::class, 'create_corporate']);
     Route::get('/accounts', [AccountController::class, 'index']);
     Route::get('/accounts/{id}', [AccountController::class, 'show']);
 
