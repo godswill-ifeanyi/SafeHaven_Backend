@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 class UserController extends Controller
 {
     use ApiResponseTrait;
-    
+
     public function create(Request $request, SafeHavenService $safeHaven)
     {
         $validated = $request->validate([
@@ -22,12 +22,16 @@ class UserController extends Controller
             'companyRegistrationNumber' => 'nullable|string',
         ]);
 
-        $response = $safeHaven->createIndividualSubAccount($validated);
+        try {
+            $response = $safeHaven->createIndividualSubAccount($validated);
 
-        if (isset($response['data'])) {
-            return $this->success($response['data'], $response['message'] ?? 'Account created successfully', 201);
-        } else {
-            return $this->error($response['message'] ?? 'Failed to create account', $response['statusCode'] ?? 400);
+            if (isset($response['data'])) {
+                return $this->success($response['data'], $response['message'] ?? 'Account created successfully', 201);
+            } else {
+                return $this->error($response['message'] ?? 'Failed to create account', $response['statusCode'] ?? 400);
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage() ?? 'Failed to create account', 500);
         }
     }
 

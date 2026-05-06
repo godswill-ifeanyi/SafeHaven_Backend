@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\V1\AccountController;
 use App\Http\Controllers\API\V1\NINVerificationController;
 use App\Http\Controllers\API\V1\TransferController;
 use App\Http\Controllers\API\V1\UserController;
@@ -24,8 +25,8 @@ Route::prefix('v1')->group(function() {
     // Create Account
     Route::post('/create-account', [UserController::class, 'create']);
     //Route::post('/create-account/corporate', [UserController::class, 'create_corporate']);
-    //Route::get('/account-details/users', [UserController::class, 'index']);
-    //Route::get('/account-details/{account_ref}', [UserController::class, 'show']);
+    Route::get('/accounts', [AccountController::class, 'index']);
+    Route::get('/accounts/{id}', [AccountController::class, 'show']);
 
     // Transfers
     Route::prefix('transfers')->group(function () {
