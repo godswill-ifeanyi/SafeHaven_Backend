@@ -43,12 +43,17 @@ class UserController extends Controller
             'phone' => 'required|digits:11',
         ]);
 
-        $response = $safeHaven->createCorporateSubAccount($validated);
-
-        return response()->json(
-            $response,
-            $response['status'] === 'success' ? 201 : ($response['data']['statusCode'] ?? 422)
-        );
+        try {
+            $response = $safeHaven->createCorporateSubAccount($validated);
+            
+            if (isset($response['data'])) {
+                return $this->success($response['data'], $response['message'] ?? 'Account created successfully', 201);
+            } else {
+                return $this->error($response['message'] ?? 'Failed to create account', $response['statusCode'] ?? 400);
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage() ?? 'Failed to create account', 500);
+        }
     }
 
 }

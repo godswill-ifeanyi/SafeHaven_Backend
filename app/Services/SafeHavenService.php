@@ -137,16 +137,7 @@ class SafeHavenService
                 ],
             ]);
 
-        if (!$response->ok()) {
-            return [
-                'status' => "error",
-                'message' => $response->json('message') ?? 'Failed to create sub-account',
-            ];
-        }
+        return $response->json();
 
-        return [
-            'status' => "success",
-            'data' => $response->json(),
-        ];
     }
 }

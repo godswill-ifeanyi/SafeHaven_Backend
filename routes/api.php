@@ -24,7 +24,7 @@ Route::prefix('v1')->group(function() {
 
     // Create Account
     Route::post('/create-account', [UserController::class, 'create']);
-    //Route::post('/create-account/corporate', [UserController::class, 'create_corporate']);
+    Route::post('/create-account/corporate', [UserController::class, 'create_corporate']);
     Route::get('/accounts', [AccountController::class, 'index']);
     Route::get('/accounts/{id}', [AccountController::class, 'show']);
 
@@ -33,8 +33,8 @@ Route::prefix('v1')->group(function() {
         Route::get('/banks', [TransferController::class, 'get_banks']);
         Route::post('/name-enquiry', [TransferController::class, 'name_enquiry']);
         Route::post('/', [TransferController::class, 'transfer']);
-        Route::get('/status/{session_id}', [TransferController::class, 'transfer_status']);
         Route::get('/', [TransferController::class, 'get_transfers']);
+        Route::get('/status/{session_id}', [TransferController::class, 'transfer_status']);
     });
 
 });
