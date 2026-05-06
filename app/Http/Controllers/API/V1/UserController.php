@@ -27,10 +27,10 @@ class UserController extends Controller
 
             try {
                 // Validate OTP first before proceeding with corporate account creation
-                $otpValid = $safeHaven->validateNINVerification($validated['identityNumber'], $validated['otp']);
+                $otpValid = $safeHaven->validateNINVerification($validated['identityId'], $validated['otp']);
 
                 if (empty($otpValid['data'])) {
-                    return $this->error('Failed to validate NIN OTP', $otpValid['statusCode'] ?? 400);
+                    return $this->error($otpValid['message'] ?? 'Failed to validate NIN OTP', $otpValid['statusCode'] ?? 400);
                 }
             
                 $response = $safeHaven->createCorporateSubAccount($validated);
@@ -38,7 +38,7 @@ class UserController extends Controller
                 if (isset($response['data'])) {
                     return $this->success($response['data'], $response['message'] ?? 'Account created successfully', 201);
                 } else {
-                    return $this->error('Failed to create account', $response['statusCode'] ?? 400);
+                    return $this->error($response['message'] ?? 'Failed to create account', $response['statusCode'] ?? 400);
                 }
             } catch (\Throwable $e) {
                 return $this->error($e->getMessage() ?? 'Failed to create account', 500);
