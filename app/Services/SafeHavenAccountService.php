@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\SafeHavenTokenService;
 use Illuminate\Support\Facades\Http;
 
 class SafeHavenAccountService

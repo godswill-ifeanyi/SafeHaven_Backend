@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Services\SafeHavenAccountService;
+use App\Traits\ApiResponseTrait;
+use Illuminate\Http\Request;
 
 class AccountController extends Controller
 {
+    use ApiResponseTrait;
+    
     protected SafeHavenAccountService $service;
 
     public function __construct(SafeHavenAccountService $service)
