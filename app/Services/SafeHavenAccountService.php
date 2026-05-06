@@ -36,7 +36,7 @@ class SafeHavenAccountService
         $query = [
             'page' => $params['page'] ?? 0,
             'limit' => $params['limit'] ?? 100,
-            'isSubAccount' => true, 
+            'isSubAccount' => 'true', 
         ];
 
         $response = $this->client()->get(
