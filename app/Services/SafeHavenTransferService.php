@@ -71,7 +71,7 @@ class SafeHavenTransferService
             "amount" => $data['amount'],
             "debitAccountNumber" => $data['debitAccountNumber'],
             "beneficiaryAccountNumber" => $data['creditAccountNumber'],
-            "beneficiaryBankCode" => $data['creditankCode'],
+            "beneficiaryBankCode" => $data['creditBankCode'],
             "narration" => $data['narration'] ?? 'Transfer',
             "saveBeneficiary" => false,
             "nameEnquiryReference" => $data['sessionId'], // 🔑 from name enquiry
