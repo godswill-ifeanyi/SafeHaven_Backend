@@ -113,11 +113,11 @@ class TransferController extends Controller
             }
         );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'OTP sent successfully',
-            'transferToken' => $transferToken,
-        ]);
+        return $this->success(
+            ['transferToken' => $transferToken],
+            'OTP sent to email. Use the transfer token to verify and complete the transfer.',
+            201
+        );
     }
 
     public function verifyOtpAndTransfer(
