@@ -15,8 +15,8 @@ class WebhookController extends Controller
     {
         $payload = $request->all();
 
-        if (($payload['eventType'] ?? null) === 'account.credit') {
-            $data = $payload['data'];
+        $data = $payload['data'];
+        if (($data['type'] ?? null) == 'Inwards') {
 
             CreditTransaction::create([
                 'reference' => $data['sessionId'],
