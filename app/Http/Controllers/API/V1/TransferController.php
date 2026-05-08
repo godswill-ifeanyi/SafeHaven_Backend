@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
+use App\Services\SafeHavenTransferService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class TransferController extends Controller
 {
     use ApiResponseTrait;
-    
+
      /**
      * Get list of banks for transfers
      */
@@ -32,7 +36,7 @@ class TransferController extends Controller
             'accountNumber' => 'required|digits_between:10,12',
             'bankCode' => 'required|string',
         ]);
-    
+
         // Get name enquiry from SafeHavenTransferService
         $response = app()->make('App\Services\SafeHavenTransferService')->nameEnquiry($request->accountNumber, $request->bankCode);
 
@@ -43,7 +47,7 @@ class TransferController extends Controller
         }
     }
 
-    public function transfer(Request $request)
+    /* public function transfer(Request $request)
     {
         $request->validate([
             'debitAccountNumber' => 'required|digits_between:10,12',
@@ -61,7 +65,124 @@ class TransferController extends Controller
             return $this->success($response['data'], 'Transfer successful', 201);
         } else {
             return $this->error($response['message'] ?? 'Failed to transfer', $response['statusCode'] ?? 400);
-        } 
+        }
+    } */
+
+    public function initiate(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'debitAccountNumber' => 'required|digits_between:10,12',
+            'creditAccountNumber' => 'required|digits_between:10,12',
+            'creditBankCode' => 'required|string',
+            'amount' => 'required|numeric|min:1',
+            'narration' => 'nullable|string',
+            'sessionId' => 'required|string',
+        ]);
+
+        /**
+         * Generate OTP
+         */
+        $otp = random_int(100000, 999999);
+
+        /**
+         * Unique transfer token
+         */
+        $transferToken = Str::uuid()->toString();
+
+        /**
+         * Store pending transfer for 10 mins
+         */
+        Cache::put(
+            "pending_transfer_{$transferToken}",
+            [
+                'otp' => $otp,
+                'payload' => $validated,
+            ],
+            now()->addMinutes(10)
+        );
+
+        /**
+         * Send OTP email
+         */
+        Mail::raw(
+            "Your transfer OTP is: {$otp}",
+            function ($message) use ($validated) {
+                $message->to($validated['email'])
+                    ->subject('Transfer OTP');
+            }
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP sent successfully',
+            'transferToken' => $transferToken,
+        ]);
+    }
+
+    public function verifyOtpAndTransfer(
+    Request $request,
+    SafeHavenTransferService $transferService
+    ) {
+        $validated = $request->validate([
+            'transferToken' => 'required|string',
+            'otp' => 'required|digits:6',
+        ]);
+
+        /**
+         * Retrieve pending transfer
+         */
+        $pendingTransfer = Cache::get(
+            "pending_transfer_{$validated['transferToken']}"
+        );
+
+        if (!$pendingTransfer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Transfer session expired',
+            ], 400);
+        }
+
+        /**
+         * Verify OTP
+         */
+        if ($pendingTransfer['otp'] != $validated['otp']) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid OTP',
+            ], 400);
+        }
+
+        /**
+         * Execute transfer
+         */
+        $response = $transferService->transfer(
+            $pendingTransfer['payload']
+        );
+
+        /**
+         * Remove cache after successful use
+         */
+        Cache::forget(
+            "pending_transfer_{$validated['transferToken']}"
+        );
+
+        if (empty($response['data'])) {
+
+            return response()->json([
+                'success' => false,
+                'message' => $response['message']
+                    ?? 'Transfer failed',
+                'error' => $response,
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transfer successful',
+            'data' => $response['data'],
+        ]);
     }
 
     public function transfer_status(Request $request)

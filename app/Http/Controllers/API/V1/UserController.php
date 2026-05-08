@@ -15,7 +15,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'email' => 'required|email',
-            'phone' => 'required|digits:11',
+            'phone' => 'required|string',
             'identityNumber' => 'required|digits:11',
             'identityId' => 'required|string',
             'otp' => 'required|digits:6',
@@ -32,9 +32,9 @@ class UserController extends Controller
                 if (empty($otpValid['data'])) {
                     return $this->error($otpValid['message'] ?? 'Failed to validate NIN OTP', $otpValid['statusCode'] ?? 400);
                 }
-            
+
                 $response = $safeHaven->createCorporateSubAccount($validated);
-                
+
                 if (isset($response['data'])) {
                     return $this->success($response['data'], $response['message'] ?? 'Account created successfully', 201);
                 } else {
@@ -59,7 +59,7 @@ class UserController extends Controller
         }
     }
 
-    public function create_corporate(Request $request, SafeHavenService $safeHaven) {
+    /* public function create_corporate(Request $request, SafeHavenService $safeHaven) {
         $validated = $request->validate([
             'identityId' => 'required|string',
             'companyRegistrationNumber' => 'required|string',
@@ -69,7 +69,7 @@ class UserController extends Controller
 
         try {
             $response = $safeHaven->createCorporateSubAccount($validated);
-            
+
             if (isset($response['data'])) {
                 return $this->success($response['data'], $response['message'] ?? 'Account created successfully', 201);
             } else {
@@ -78,6 +78,6 @@ class UserController extends Controller
         } catch (\Throwable $e) {
             return $this->error($e->getMessage() ?? 'Failed to create account', 500);
         }
-    }
+    } */
 
 }

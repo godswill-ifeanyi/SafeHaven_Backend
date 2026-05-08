@@ -35,6 +35,9 @@ Route::prefix('v1')->group(function() {
         Route::post('/', [TransferController::class, 'transfer']);
         Route::get('/', [TransferController::class, 'get_transfers']);
         Route::get('/status/{session_id}', [TransferController::class, 'transfer_status']);
+
+        Route::post('/initiate', [TransferController::class, 'initiate']);
+        Route::post('/verify', [TransferController::class, 'verifyOtpAndTransfer']);
     });
 
 });

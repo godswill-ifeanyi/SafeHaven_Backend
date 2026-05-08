@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Services\SafeHavenTokenService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class SafeHavenTransferService
 {
@@ -65,7 +66,7 @@ class SafeHavenTransferService
     /**
      * 3️⃣ Transfer
      */
-    public function transfer(array $data)
+    /* public function transfer(array $data)
     {
         $response = $this->client()->post("{$this->baseUrl}/transfers", [
             "amount" => $data['amount'],
@@ -80,6 +81,61 @@ class SafeHavenTransferService
 
 
             return $response->json();
+    } */
+
+
+    public function transfer(array $data): array
+    {
+        $payload = [
+            "amount" => $data['amount'],
+
+            "debitAccountNumber" =>
+                $data['debitAccountNumber'],
+
+            "beneficiaryAccountNumber" =>
+                $data['creditAccountNumber'],
+
+            "beneficiaryBankCode" =>
+                $data['creditBankCode'],
+
+            "narration" =>
+                $data['narration'] ?? 'Transfer',
+
+            "saveBeneficiary" => false,
+
+            /**
+             * Name enquiry session ID
+             */
+            "nameEnquiryReference" =>
+                $data['sessionId'],
+
+            /**
+             * Unique payment reference
+             */
+            "paymentReference" =>
+                'trx-' . Str::uuid(),
+        ];
+
+        $response = $this->client()
+            ->timeout(60)
+            ->post(
+                "{$this->baseUrl}/transfers",
+                $payload
+            );
+
+        /* if (!$response->ok()) {
+
+            return [
+                'success' => false,
+                'status' => $response->status(),
+                'message' =>
+                    $response->json('message')
+                    ?? 'Transfer failed',
+                'error' => $response->json(),
+            ];
+        } */
+
+        return  $response->json();
     }
 
     /**
