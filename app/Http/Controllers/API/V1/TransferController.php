@@ -115,8 +115,8 @@ class TransferController extends Controller
 
         return $this->success(
             ['transferToken' => $transferToken],
-            'OTP sent to email. Use the transfer token to verify and complete the transfer.',
-            201
+            'OTP sent to email. Use the transfer token and OTP to verify and complete the transfer.',
+            200
         );
     }
 
@@ -137,10 +137,7 @@ class TransferController extends Controller
         );
 
         if (!$pendingTransfer) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Transfer session expired',
-            ], 400);
+            return $this->error('Transfer session expired', 400);
         }
 
         /**
@@ -148,10 +145,7 @@ class TransferController extends Controller
          */
         if ($pendingTransfer['otp'] != $validated['otp']) {
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid OTP',
-            ], 400);
+            return $this->error('Invalid OTP', 400);
         }
 
         /**
@@ -170,19 +164,10 @@ class TransferController extends Controller
 
         if (empty($response['data'])) {
 
-            return response()->json([
-                'success' => false,
-                'message' => $response['message']
-                    ?? 'Transfer failed',
-                'error' => $response,
-            ], 400);
+            return $this->error($response['message'] ?? 'Transfer failed', $response['statusCode'] ?? 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Transfer successful',
-            'data' => $response['data'],
-        ]);
+        return $this->success($response['data'], 'Transfer successful', 200);
     }
 
     public function transfer_status(Request $request)
