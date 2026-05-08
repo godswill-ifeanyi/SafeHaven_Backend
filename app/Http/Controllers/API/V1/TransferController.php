@@ -106,7 +106,7 @@ class TransferController extends Controller
          * Send OTP email
          */
         Mail::raw(
-            "Your transfer OTP is: {$otp}",
+            "Your transfer OTP is: {$otp} expires in 10 minutes",
             function ($message) use ($validated) {
                 $message->to($validated['email'])
                     ->subject('Transfer OTP');
