@@ -1,10 +1,11 @@
 <?php
 
 use App\Http\Controllers\API\V1\AccountController;
+use App\Http\Controllers\API\V1\DepositController;
 use App\Http\Controllers\API\V1\NINVerificationController;
 use App\Http\Controllers\API\V1\TransferController;
 use App\Http\Controllers\API\V1\UserController;
-use App\Services\SafeHavenTokenService;
+use App\Http\Controllers\API\V1\WebhookController;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 
@@ -39,5 +40,8 @@ Route::prefix('v1')->group(function() {
         Route::get('/', [TransferController::class, 'get_transfers']);
         Route::get('/status/{session_id}', [TransferController::class, 'transfer_status']);
     });
+
+    // Deposit
+    Route::post('/webhooks/credit', [WebhookController::class, 'handle']);
 
 });
